@@ -29,7 +29,7 @@
      Byte bytes[1];
      bytes[0] = 0x00;
      NSData *data = [NSData dataWithBytes:bytes length:1];
-     [[LSBluetoothManager shareBLEManager] sendMsg:data];
+     [[YFXBluetoothManager shareBLEManager] sendMsg:data];
      */
     
     //更多方法请参加 YFXBluetoothManager.h
