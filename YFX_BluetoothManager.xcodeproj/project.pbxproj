@@ -15,7 +15,7 @@
 		6A3C586A1E2F2A7A0043C6A6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6A3C58681E2F2A7A0043C6A6 /* LaunchScreen.storyboard */; };
 		6A3C58751E2F2A7A0043C6A6 /* YFX_BluetoothManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A3C58741E2F2A7A0043C6A6 /* YFX_BluetoothManagerTests.m */; };
 		6A3C58801E2F2A7A0043C6A6 /* YFX_BluetoothManagerUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A3C587F1E2F2A7A0043C6A6 /* YFX_BluetoothManagerUITests.m */; };
-		6A3C588F1E2F2A9D0043C6A6 /* YFXluetoothManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A3C588E1E2F2A9D0043C6A6 /* YFXluetoothManager.m */; };
+		6A3C588F1E2F2A9D0043C6A6 /* YFXBluetoothManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 6A3C588E1E2F2A9D0043C6A6 /* YFXBluetoothManager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,7 +53,7 @@
 		6A3C587F1E2F2A7A0043C6A6 /* YFX_BluetoothManagerUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = YFX_BluetoothManagerUITests.m; sourceTree = "<group>"; };
 		6A3C58811E2F2A7A0043C6A6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6A3C588D1E2F2A9D0043C6A6 /* YFXBluetoothManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YFXBluetoothManager.h; sourceTree = "<group>"; };
-		6A3C588E1E2F2A9D0043C6A6 /* YFXluetoothManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFXluetoothManager.m; sourceTree = "<group>"; };
+		6A3C588E1E2F2A9D0043C6A6 /* YFXBluetoothManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YFXBluetoothManager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,7 +109,7 @@
 				6A3C58601E2F2A7A0043C6A6 /* ViewController.h */,
 				6A3C58611E2F2A7A0043C6A6 /* ViewController.m */,
 				6A3C588D1E2F2A9D0043C6A6 /* YFXBluetoothManager.h */,
-				6A3C588E1E2F2A9D0043C6A6 /* YFXluetoothManager.m */,
+				6A3C588E1E2F2A9D0043C6A6 /* YFXBluetoothManager.m */,
 				6A3C58631E2F2A7A0043C6A6 /* Main.storyboard */,
 				6A3C58661E2F2A7A0043C6A6 /* Assets.xcassets */,
 				6A3C58681E2F2A7A0043C6A6 /* LaunchScreen.storyboard */,
@@ -282,7 +282,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6A3C58621E2F2A7A0043C6A6 /* ViewController.m in Sources */,
-				6A3C588F1E2F2A9D0043C6A6 /* YFXluetoothManager.m in Sources */,
+				6A3C588F1E2F2A9D0043C6A6 /* YFXBluetoothManager.m in Sources */,
 				6A3C585F1E2F2A7A0043C6A6 /* AppDelegate.m in Sources */,
 				6A3C585C1E2F2A7A0043C6A6 /* main.m in Sources */,
 			);
