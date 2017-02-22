@@ -36,7 +36,7 @@ typedef enum : NSUInteger {
 /*
  *  单例
  *
- *  @return LSBluetoothManager
+ *  @return YFXBluetoothManager
  */
 + (instancetype)shareBLEManager;
 /*
