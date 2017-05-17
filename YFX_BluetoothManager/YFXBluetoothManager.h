@@ -8,17 +8,20 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreBluetooth/CoreBluetooth.h>
-
+#define kServiceUUID               @"" //设备服务的UUID
+#define kOutPutcharacteristicUUID  @"" //连接的设备特征(通道)输出的UUID
+#define kInputCharacteristicUUID   @"" //连接的设备特征(通道)输入的UUID
+//0-未知 1-重置中 2-不支持 3-非法 4-关闭 5-开启 6-连接失败 7-连接成功
 typedef enum : NSUInteger {
-    
-    Unknown = 0, //未知
-    Resetting,   //重置中
-    Unsupported, //不支持
-    Unauthorized,//未经授权的
-    PoweredOff,  //关闭
-    PoweredOn,   //打开
-    
-}blueToolState;//蓝牙状态
+    Unknown = 0,
+    Resetting,
+    Unsupported,
+    Unauthorized,
+    PoweredOff,
+    PoweredOn,
+    Fail,
+    Connect
+}blueToolState;//0-5跟系统蓝牙状态相同
 
 @protocol YFXBluetoothManagerDelegate <NSObject>
 

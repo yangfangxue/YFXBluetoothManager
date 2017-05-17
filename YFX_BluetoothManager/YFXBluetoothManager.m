@@ -7,76 +7,80 @@
 //  
 #import "YFXBluetoothManager.h"
 
+#define SCANCUTDOWNTIME 30.0f //查找蓝牙设备超时时间
+
 @interface YFXBluetoothManager()<CBCentralManagerDelegate,CBPeripheralDelegate>
 
-@property (nonatomic, assign) blueToolState bleStatue;
-
+@property (nonatomic, assign) blueToolState    bleStatue;
 @property (nonatomic, strong) CBCentralManager *centralManager;//蓝牙管理
-@property (nonatomic, strong) CBPeripheral *peripheral;//连接的设备信息
+@property (nonatomic, strong) CBPeripheral     *peripheral;//连接的设备信息
+@property (nonatomic, strong) NSMutableArray   *mPeripherals;//找到的设备
+@property (nonatomic, strong) NSTimer *scanCutdownTimer; //查找设备倒计时
 @property (nonatomic, strong) CBService *service;//当前服务
-@property (nonatomic, strong) CBCharacteristic *inputCharacteristic;//连接的设备特征
-@property (nonatomic, strong) NSMutableArray *mPeripherals;//找到的设备
+@property (nonatomic, strong) CBCharacteristic *inputCharacteristic;//连接的设备特征（通道）输入
+@property (nonatomic, strong) CBCharacteristic *outPutcharacteristic;//连接的设备特征（通道）输出
 
 @end
 
 @implementation YFXBluetoothManager
 
-static YFXBluetoothManager *_instance = nil;
+static YFXBluetoothManager *_manager = nil;
 
 + (instancetype)shareBLEManager{
     
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         
-        _instance = [[YFXBluetoothManager alloc]init];
+        _manager = [[YFXBluetoothManager alloc]init];
+        
+        _manager.bleStatue = Unknown;
         
         NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO],CBCentralManagerOptionShowPowerAlertKey,nil];
         
-        _instance.centralManager = [[CBCentralManager alloc] initWithDelegate:_instance queue:dispatch_get_main_queue() options:options];
+        _manager.centralManager = [[CBCentralManager alloc] initWithDelegate:_manager queue:dispatch_get_main_queue() options:options];
     });
-    return _instance;
+    return _manager;
 }
 /**
  *  获取蓝牙状态
  */
 - (blueToolState)getBLEStatue{
     
-    return _instance.bleStatue;
+    return _manager.bleStatue;
 }
 /**
  *  手机蓝牙状态
  */
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central{
     
-    [_instance updateBLEStatue:(int)central.state];
+    [_manager updateBLEStatue:(int)central.state];
 }
 /**
  *  查找设备
  */
 - (void)scanDevice{
     
-    _instance.mPeripherals = [[NSMutableArray alloc]init];//搜索到的设备集合
+    _manager.mPeripherals = [[NSMutableArray alloc]init];//搜索到的设备集合
     
-    if (!_instance.centralManager) {
+    if (!_manager.centralManager) {
         
         NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO],CBCentralManagerOptionShowPowerAlertKey,nil];
         
-        _instance.centralManager = [[CBCentralManager alloc] initWithDelegate:_instance queue:dispatch_get_main_queue() options:options];
+        _manager.centralManager = [[CBCentralManager alloc] initWithDelegate:_manager queue:dispatch_get_main_queue() options:options];
     }
 
-    if(_instance.centralManager.state == CBManagerStatePoweredOn){
+    if(_manager.centralManager.state == CBManagerStatePoweredOn){
         
         NSLog(@"开始搜索蓝牙设备");
         
-        [ _instance.centralManager scanForPeripheralsWithServices:nil options:nil];
+        [ _manager.centralManager scanForPeripheralsWithServices:nil options:nil];
         
-        [_instance updateBLEStatue:(int)_instance.centralManager.state];
+         [_manager updateBLEStatue:PoweredOn];
         
         }else{
             
-          [_instance updateBLEStatue:(int)_instance.centralManager.state];
-    }
-    
+          [_manager updateBLEStatue:(int)_manager.centralManager.state];
+       }
 }
 
 /**
@@ -85,13 +89,13 @@ static YFXBluetoothManager *_instance = nil;
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary<NSString *,id> *)advertisementData RSSI:(NSNumber *)RSSI{
     
     //数组containsObject 包含方法 判断一个元素是否在数组中
-    if (![_instance.mPeripherals containsObject:peripheral]) {
+    if (![_manager.mPeripherals containsObject:peripheral]) {
         
-        [_instance.mPeripherals addObject:peripheral];
+        [_manager.mPeripherals addObject:peripheral];
         
-        if (_instance.delegate && [_instance.delegate respondsToSelector:@selector(updateDevices:)]) {
+        if (_manager.delegate && [_manager.delegate respondsToSelector:@selector(updateDevices:)]) {
             
-            [_instance.delegate updateDevices:_instance.mPeripherals];
+            [_manager.delegate updateDevices:_manager.mPeripherals];
         }
     }
 }
@@ -102,18 +106,20 @@ static YFXBluetoothManager *_instance = nil;
     
     NSLog(@"停止搜索蓝牙设备");
     
-    if (_instance.centralManager) {
+    if (_manager.centralManager) {
         
         [_centralManager stopScan];
-        
     }
+    
+     [_manager.scanCutdownTimer invalidate];
+    
 }
 /**
  *  连接设备
  */
 - (void)connectDeviceWithCBPeripheral:(CBPeripheral *)peripheral{
     
-     [_instance.centralManager connectPeripheral:peripheral options:nil];
+     [_manager.centralManager connectPeripheral:peripheral options:nil];
 }
 
 /**
@@ -121,13 +127,13 @@ static YFXBluetoothManager *_instance = nil;
  */
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral{
     
-    _instance.peripheral = peripheral;
+    _manager.peripheral = peripheral;
     
-    _instance.peripheral.delegate = _instance;
+    _manager.peripheral.delegate = _manager;
     
-    [_instance.peripheral discoverServices:nil];
+    [_manager.peripheral discoverServices:nil];
     
-    [_instance updateBLEStatue:(int)central.state];
+    [_manager updateBLEStatue:Connect];
     
 }
 /**
@@ -136,7 +142,8 @@ static YFXBluetoothManager *_instance = nil;
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
     
     
-    [_instance updateBLEStatue:(int)central.state];
+    [_manager updateBLEStatue:Fail];
+    
 }
 /**
  * 发现服务
@@ -145,19 +152,20 @@ static YFXBluetoothManager *_instance = nil;
     
     if (error) {
         
-        NSLog(@"发现服务： %@ 错误： %@", peripheral.name, [error localizedDescription]);
-        
         return;
     }
     for (CBService *service in peripheral.services) {
         
+        if ([service.UUID.UUIDString isEqual:kServiceUUID]){
+            
+            _manager.service = service;
+            
             dispatch_async(dispatch_get_main_queue(), ^{
-              
-                [service.peripheral discoverCharacteristics:nil forService:service];
                 
+                [peripheral discoverCharacteristics:nil forService:_manager.service];
             });
+        }
     }
-    
 }
 /**
  * 发现特征
@@ -165,8 +173,6 @@ static YFXBluetoothManager *_instance = nil;
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error{
     
     if (error) {
-        
-        NSLog(@"发现特征： %@ 错误: %@", peripheral.name, [error localizedDescription]);
         
         return;
     }
@@ -176,7 +182,16 @@ static YFXBluetoothManager *_instance = nil;
         
         [peripheral readValueForCharacteristic:c];
         
-        _inputCharacteristic = c;
+        //连接的设备特征（通道）输出
+        if ([c.UUID.UUIDString isEqual:kOutPutcharacteristicUUID]){
+            
+            _outPutcharacteristic = c;
+        }
+        //连接的设备特征（通道）输入
+        if ([c.UUID.UUIDString isEqual:kInputCharacteristicUUID]){
+            
+            _inputCharacteristic = c;
+        }
     }
 }
 
@@ -189,9 +204,9 @@ static YFXBluetoothManager *_instance = nil;
     
     NSLog(@"断开蓝牙连接");
     
-    if (_instance.peripheral) {
+    if (_manager.peripheral) {
         
-        [_instance.centralManager cancelPeripheralConnection:_instance.peripheral];
+        [_manager.centralManager cancelPeripheralConnection:_manager.peripheral];
     }
 }
 
@@ -200,7 +215,7 @@ static YFXBluetoothManager *_instance = nil;
  */
 - (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error{
     
-     [_instance updateBLEStatue:(int)central.state];
+     [_manager updateBLEStatue:(int)central.state];
     
 }
 #pragma mark - 发送及接收消息
@@ -211,33 +226,29 @@ static YFXBluetoothManager *_instance = nil;
  */
 - (void)sendMsg:(NSData* )msg{
     
-    NSLog(@"msg %@",msg);
-    
     if (msg) {
         
-        [_instance.peripheral writeValue:msg forCharacteristic:_inputCharacteristic type:CBCharacteristicWriteWithoutResponse];
+        if (self.bleStatue==Connect) {
+            
+            [_manager.peripheral writeValue:msg forCharacteristic:_outPutcharacteristic type:CBCharacteristicWriteWithoutResponse];
+        }
     }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
+    
     NSLog(@"didWriteValueForCharacteristic -> %@",characteristic);
 }
-
 /**
  * 接收数据
  */
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error{
     
-    if (error) {
-        
-        NSLog(@"接收数据错误：%@",[error localizedDescription]);
-        return;
-    }
     NSLog(@"接收到的数据：%@",characteristic.value);
     
-    if (_instance.delegate && [_instance.delegate respondsToSelector:@selector(revicedMessage:)]) {
+    if (_manager.delegate && [_manager.delegate respondsToSelector:@selector(revicedMessage:)]) {
         
-        [_instance.delegate revicedMessage:characteristic.value];
+        [_manager.delegate revicedMessage:characteristic.value];
     }
 }
 - (void)peripheral:(CBPeripheral *)peripheral
@@ -245,20 +256,21 @@ didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic
              error:(NSError *)error {
     if (error) {
         
+        return;
     }
     [peripheral readValueForCharacteristic:characteristic];
 }
 #pragma mark - helper
 - (void)updateBLEStatue:(blueToolState)statue{
     
-    _instance.bleStatue = statue;
+    _manager.bleStatue = statue;
     
-    if (_instance.delegate && [_instance.delegate respondsToSelector:@selector(updateStatue:)]) {
+    if (_manager.delegate && [_manager.delegate respondsToSelector:@selector(updateStatue:)]) {
         
-        [_instance.delegate updateStatue:_instance.bleStatue];
+        [_manager.delegate updateStatue:_manager.bleStatue];
     }
     
-    NSLog(@"蓝牙状态为 %d", (int)_instance.bleStatue);
+    NSLog(@"蓝牙状态为 %d", (int)_manager.bleStatue);
 }
 
 @end
