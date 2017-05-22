@@ -42,7 +42,7 @@
 //搜索到设备回调
 - (void)updateDevices:(NSArray *)devices{
     
-    //devices为CBPeripheral(外设)对象集合
+    //devices为CBPeripheral(外设)对象集合 请自行选择自己家的设备连接 
     
     /*
      连接蓝牙设备的方法 connectDeviceWithCBPeripheral
