@@ -113,6 +113,8 @@ static YFXBluetoothManager *_manager = nil;
     
      [_manager.scanCutdownTimer invalidate];
     
+    _manager.scanCutdownTimer = nil;
+    
 }
 /**
  *  连接设备
